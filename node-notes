@@ -1,0 +1,42 @@
+# Criando e configurando projeto Node 
+  -> $ <npm init -y> 
+    Cria um projeto Node e um arquivo package.json, que contêm informações cruciais do projeto
+    A opção -y ignora perguntas normalmente feitas ao iniciar um projeto Node
+  ## TypeScript
+    O Node por padrão não entende TypeScript, logo temos que instalar algumas dependências para que ele enteda o código
+  -> $ <npm i typescript @types/node -D>
+      A opção -D instala as dependências como ferramenta de desenvolvimento, assim, quando o projet for pro ar elas não serão usadas, isso por que quando ele vai ao ar o código é convertido para JavaScript. O TS funciona como um validador de código dentro do editor, para indicar possíveis erros relacionados a tipagem.
+      Após a instalação das dependências acima, rodamos o comando:
+  -> $ <npx tsc --init> 
+      Que cria o arquivo tsconfig.json, contendo várias configurações do TypeScript. Podemos ir no repositório tsc no GitHub: <https://github.com/tsconfig/bases>, ir em <Node 20> (a depender da sua versão Node), copiar e colar o conteúdo do arquivo tsconfig.json, onde também vamos setar algumas configurações
+# TSX
+  -> $ <npm i tsx -D>
+      A biblioteca tsx serve para que possamos executar arquivos tsx e faz a conversão dos mesmos para js por trás dos panos
+  -> $ <npx tsx [caminho/do/arquivo.ts]> _ executa o arquivo ts
+  -> $ <npx tsx watch [caminho/do/arquivo.ts]> 
+    Este comando fica observando o arquivo e o executa novamente sempre que ele é alterado. Para que não precisemos lembrar desse comando sempre, alteramos o arquivo package.json, incluindo na seção de "scripts", o script "dev" com o comando em si. Assim podemos executar o arquivo pelo comando:
+  -> $ <npm run dev>
+
+# Fastify
+  -> $ <npm i fastify>
+    É um microframework para NodeJS que ajuda a tratar das rotas da aplicação
+
+# Prisma (Banco de Dados)
+  Está aplicação irá utlizar o ORM Prisma para tratar do banco de dados
+  -> $ <npm i prisma> _ Instalando o Prisma
+
+  Após a instalação do prisma, iniciamos ele no projeto, definindo qual banco de dados vamos usar, nesse caso o SQLite.
+  -> $ <npx prisma init --datasource-provider SQLite>
+    Além de dar ínicio do prisma ao projeto, ele cria um arquivo [.env] e a pasta [prisma], onde vamos configurar e estruturar o banco
+
+  -> <npx prisma migrate dev>
+    Esse comando varre o esquema do banco e detecta todas as mudanças, adicionando uma espécie de versionamento do banco de dados. Ele pede um nome para o migrate, que seria equivalente a um commit. Ele cria a pasta migrations e adiciona arquivos com as mudanças de cada alteração.
+
+  ## Vizualizar o banco de dados (dev.db)
+  -> <npx prisma studio>
+    Esse comando abre um visualizador do banco de dados, mais especifícamente o arquivo dev.db, no navegador, onde você pode ver as tabelas, colunas, inserções...
+
+  ## Validação de dados
+    Para validar dados que são enviados por requisições, podemos utilizar a biblioteca Zod
+  -> $ <npm i zod>
+
