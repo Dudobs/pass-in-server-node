@@ -1,8 +1,34 @@
-POST http://localhost:5555/events
+POST http://localhost:8888/events
 Content-Type: application/json
 
 {
-  "title": "Dudobs",
-  "details": "O evento do Dudu",
-  "maximumAttendess": 25
+  "title": "Evento muito pequeno",
+  "details": "Só cabe uma pessoas",
+  "maximumAttendees": 1
 }
+
+###
+
+POST http://localhost:8888/events/9535f869-1f03-4150-b698-42f2285c6db8/attendee
+Content-Type: application/json
+
+{
+  "name": "Eduardo Vieira",
+  "email": "dudobslol@gmail.com"f
+}
+
+###
+
+GET http://localhost:8888/events/9535f869-1f03-4150-b698-42f2285c6db8
+
+###
+
+GET http://localhost:8888/attendees/2/badge
+
+###
+
+GET http://localhost:8888/attendees/2/check-in
+
+###
+
+GET http://localhost:8888/events/9535f869-1f03-4150-b698-42f2285c6db8/attendees?query=edu

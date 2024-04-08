@@ -1,37 +1,57 @@
 import fastify from 'fastify';
-import { z } from 'zod';
-import { PrismaClient } from '@prisma/client'; // Inserir dados no banco
 
-const prisma = new PrismaClient({ // Cria conexão com o banco de dados
-  log: ['query'], // Mostra um log a cada query que for feita ao banco
-})
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUI from '@fastify/swagger-ui';
+import fastifyCors from '@fastify/cors';
+
+import { serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fastify-type-provider-zod';
+import { createEvent } from './routes/create-event';
+import { registerForEvent } from './routes/register-for-event';
+import { getEvents } from './routes/get-events';
+import { getAttendeeBadge } from './routes/get-attendee-badge';
+import { checkIn } from './routes/check-in';
+import { getEventsAttendees } from './routes/get-event-attendees';
+import { errorHandler } from './error-handler';
 
 const app = fastify()
 
-app.post('/events', async (request, reply) => { // request = dados recebidos | reply = como devolver a resposta pro front-end
-  const createEventSchema = z.object({ // Informamos ao zod que o formato de dados que passamos na requisição, nesse caso é um objeto
-    // Após isso, declaramos o corpo que essa requisição deve ter e suas especificações
-    title: z.string().min(4), // O titulo é uma string e deve conter no mínimo 4 caracteres
-    details: z.string().nullable(), // Os detalhes podem ser nulos
-    maximumAttendess: z.number().int().positive().nullable(), // Esse campo além de um número, deve ser inteiro, positivo e pode ser nulo
-  })
-
-  const data = createEventSchema.parse(request.body) // Valida os dados. Pega o corpo da requisição e verifica se segue suas devidas especificações 
-
-  const event = await prisma.event.create({ // Processo de criação de um evento 
-    // Está função é uma promessa, logo usamos o await antes da mesma, assim ela espera o fim da execução da função, antes de prosseguir com o código, mas para isso, devemos declarar que temos promessas na função pai da promessa escrevendo 'async' antes da mesma
-    data: {
-      title: data.title,
-      details: data.details,
-      maximumAttendees: data.maximumAttendess,
-      slug: new Date().toISOString(),
-    }
-  })
-
-  return reply.status(201).send({ eventId: event.id })
+// Configurando quais aplicações front-end podem consumir a API
+app.register(fastifyCors, {
+  origin: '*' // Qualquer aplicação front-end
 })
 
-app.listen({ port: 5555 }).then(() => {
+// Criando documentação da API com Swagger
+app.register(fastifySwagger, {
+  swagger: {
+    consumes: ['application/json'], // Informo que todos os dados enviados serão no formato JSON
+    produces: ['application/json'], // Assim como os dados a serem retornados (rotas GET)
+    info: { // Informações da API
+      title: 'pass.in',
+      description: 'Especificações da API para o back-end da aplicação pass.in construída durante o NLW Unite da Rocketseat.',
+      version: '1.0.0'
+    },
+  },
+  // O transform diz para o Swagger, como ele deve interpetar os esquemas de cada rota, suas tipagens. No nosso caso, isso foi feito com o Zod
+  transform: jsonSchemaTransform // Importa o 'jsonSchemaTransform' from 'fastify-type-provider-zod' que diz para o Swagger que estamos usando o Zod para fazer a tipagem das rotas 
+})
+
+app.register(fastifySwaggerUI, {
+  routePrefix: '/docs' // Ao acessar a rota 'localhost:8888/docs' abre a interface de documentação da API
+})
+
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
+
+app.register(createEvent) // 'create-event.ts'
+app.register(registerForEvent)
+app.register(getEvents)
+app.register(getAttendeeBadge)
+app.register(checkIn)
+app.register(getEventsAttendees)
+
+app.setErrorHandler(errorHandler) // Direciona todos os erros para essa função, que foi criada para o tratamento dos mesmos
+
+app.listen({ port: 8888, host: '0.0.0.0' }).then(() => {
   console.log('HTTP server running')
 }) 
 // Coloca o porjeto no ar e define a porta da aplicação

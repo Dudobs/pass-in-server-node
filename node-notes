@@ -8,7 +8,16 @@
       A opção -D instala as dependências como ferramenta de desenvolvimento, assim, quando o projet for pro ar elas não serão usadas, isso por que quando ele vai ao ar o código é convertido para JavaScript. O TS funciona como um validador de código dentro do editor, para indicar possíveis erros relacionados a tipagem.
       Após a instalação das dependências acima, rodamos o comando:
   -> $ <npx tsc --init> 
-      Que cria o arquivo tsconfig.json, contendo várias configurações do TypeScript. Podemos ir no repositório tsc no GitHub: <https://github.com/tsconfig/bases>, ir em <Node 20> (a depender da sua versão Node), copiar e colar o conteúdo do arquivo tsconfig.json, onde também vamos setar algumas configurações
+      Que cria o arquivo tsconfig.json, contendo várias configurações do TypeScript. Podemos ir no repositório tsc no GitHub: `https://github.com/tsconfig/bases`, ir em <Node 20> (a depender da sua versão Node), copiar e colar o conteúdo do arquivo tsconfig.json, onde também vamos setar algumas configurações
+
+  ### TsUp
+    O TsUp facilita o build da aplicação convertendo o código TS em ESM (ECMAScriptModules) para pormos ela em produção 
+  -> $ <npm i tsup -D>
+    Só precisamos adicionar o script de `build` ao arquivo [package.json] com o conteúdo: "tsup src --format esm"
+      --> 'src' é a pasta do nosso código fonte, o código a ser convertido.
+      --> '--format esm' é o formato ao qual vamos converter o código, nesse caso o ESM
+    Além disso, o script `start`, roda o projeto no formato do build, nesse caso o ESM
+
 # TSX
   -> $ <npm i tsx -D>
       A biblioteca tsx serve para que possamos executar arquivos tsx e faz a conversão dos mesmos para js por trás dos panos
@@ -21,6 +30,17 @@
   -> $ <npm i fastify>
     É um microframework para NodeJS que ajuda a tratar das rotas da aplicação
 
+  ## Swagger
+    Toda boa API, tem sua boa documentação. O Swagger é uma ferramenta que serve para a documentação da sua aplicação back-end
+  -> $ <npm i @fastfy/swagger>
+
+  -> $ <npm i @fastfy/swagger-ui>
+    Com esse comando além de toda a documentação que o Swagger ja traz, teremos também uma interface visual da mesma, que facilitará sua interpretação
+
+  ## Cors
+    O pacote Cors, do Fastify, configua quais aplicações vão poder consumir nossa API
+  -> $ <npm i @fastify/cors>
+
 # Prisma (Banco de Dados)
   Está aplicação irá utlizar o ORM Prisma para tratar do banco de dados
   -> $ <npm i prisma> _ Instalando o Prisma
@@ -29,14 +49,74 @@
   -> $ <npx prisma init --datasource-provider SQLite>
     Além de dar ínicio do prisma ao projeto, ele cria um arquivo [.env] e a pasta [prisma], onde vamos configurar e estruturar o banco
 
-  -> <npx prisma migrate dev>
-    Esse comando varre o esquema do banco e detecta todas as mudanças, adicionando uma espécie de versionamento do banco de dados. Ele pede um nome para o migrate, que seria equivalente a um commit. Ele cria a pasta migrations e adiciona arquivos com as mudanças de cada alteração.
+  -> $ <npx prisma migrate dev>
+    Esse comando varre o esquema do banco e detecta todas as mudanças, adicionando uma espécie de versionamento do banco de dados. Ele pede um nome para o migrate, que seria equivalente a um commit. Ele cria a pasta migrations e adiciona arquivos com as mudanças de cada alteração
+  
+  ## Seed
+  -> <npx prisma db seed>
+    Esse comando popula o banco de dados com dados fictícios, oque ajuda no desenvolvimento front-end da aplicação
+    Mas para isso antes devemos criar o seed com os dados a serem criados [prisma/seed.ts] e setar o seed do prisma no arquivo [package.json]
+      {
+        ...
+        "prisma": {
+          "seed": "tsx prisma/seed.ts"
+        },
+        ...
+      }
 
   ## Vizualizar o banco de dados (dev.db)
   -> <npx prisma studio>
     Esse comando abre um visualizador do banco de dados, mais especifícamente o arquivo dev.db, no navegador, onde você pode ver as tabelas, colunas, inserções...
 
-  ## Validação de dados
+  ## Validação de dados | Zod
     Para validar dados que são enviados por requisições, podemos utilizar a biblioteca Zod
   -> $ <npm i zod>
 
+  ### Fastify type provier Zod
+    Semelhante ao zod, mas que valida não só o body da requisição, mas tudo relacionado a ela (response, params, headers...)
+  -> $ <npm i fastify-type-provider-zod> --> `https://github.com/turkerdev/fastify-type-provider-zod`
+
+    <-ANTES-> , com o zod, criávamos um esquema que validaria as informações passadas no corpo da requisição
+
+    [ ...
+      const createEventSchema = z.object({ // Informamos ao zod que o formato de dados que passamos na requisição, nesse caso é um objeto
+        title: z.string().min(4), // O titulo é uma string e deve conter no mínimo 4 caracteres
+        details: z.string().nullable(), // Os detalhes podem ser nulos
+        maximumAttendees: z.number().int().positive().nullable(), // Esse campo além de um número, deve ser inteiro, positivo e pode ser nulo
+      })
+      ...
+      } = createEventSchema.parse(request.body) // Valida os dados. Pega o corpo da requisição e verifica se segue suas devidas especificações 
+    ]
+
+    <-DEPOIS-> , com o fastify type provier Zod, criamos um mesmo 'schema', em forma de objeto, no começo da função da rota, após a URl da mesma
+
+    [
+      app.withTypeProvider<ZodTypeProvider>()
+        .post('/events', {
+          schema: { // Criamos um esquema que vai validar TODOS os dados recebidos e retornados da rota
+            body: z.object({ // Informamos ao zod que o formato de dados que passamos na requisição, nesse caso é um objeto
+            // Após isso, declaramos o corpo que essa requisição deve ter e suas especificações
+              title: z.string().min(4), // O titulo é uma string e deve conter no mínimo 4 caracteres
+              details: z.string().nullable(), // Os detalhes podem ser nulos
+              maximumAttendees: z.number().int().positive().nullable(), // Esse campo além de um número, deve ser inteiro, positivo e pode ser nulo
+            }),
+            response: {
+              201: z.object({ // Declara que a resposta da requisição retorna uma String no formato UUID
+                eventId: z.string().uuid(),
+              }),
+            },
+          }
+        }, async (request, reply) => { // request = dados recebidos | reply = como devolver a resposta pro front-end
+            const { // Desestruturando o obejto, assim podemos passar os dados mais rápidos
+              title,
+              details,
+              maximumAttendees,
+            } = request.body // Valida os dados. Pega o corpo da requisição e verifica se segue suas devidas especificações 
+    ]
+
+    Dessa forma, estamos sendo muito restritos quanto a tipagem da nossa aplicação, visto que estamos utilizando TypeScript
+
+# Next Level 
+
+  -> Integrar API com o projeto React
+  -> Elaborar novas rotas
