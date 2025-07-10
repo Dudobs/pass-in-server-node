@@ -56,13 +56,14 @@
   -> <npx prisma db seed>
     Esse comando popula o banco de dados com dados fictícios, oque ajuda no desenvolvimento front-end da aplicação
     Mas para isso antes devemos criar o seed com os dados a serem criados [prisma/seed.ts] e setar o seed do prisma no arquivo [package.json]
-      {
+
+      ```json
         ...
         "prisma": {
           "seed": "tsx prisma/seed.ts"
         },
         ...
-      }
+      ```
 
   ## Vizualizar o banco de dados (dev.db)
   -> <npx prisma studio>
@@ -78,7 +79,8 @@
 
     <-ANTES-> , com o zod, criávamos um esquema que validaria as informações passadas no corpo da requisição
 
-    [ ...
+    ```tsx
+     ...
       const createEventSchema = z.object({ // Informamos ao zod que o formato de dados que passamos na requisição, nesse caso é um objeto
         title: z.string().min(4), // O titulo é uma string e deve conter no mínimo 4 caracteres
         details: z.string().nullable(), // Os detalhes podem ser nulos
@@ -86,11 +88,11 @@
       })
       ...
       } = createEventSchema.parse(request.body) // Valida os dados. Pega o corpo da requisição e verifica se segue suas devidas especificações 
-    ]
+    ```
 
     <-DEPOIS-> , com o fastify type provier Zod, criamos um mesmo 'schema', em forma de objeto, no começo da função da rota, após a URl da mesma
 
-    [
+    ```tsx
       app.withTypeProvider<ZodTypeProvider>()
         .post('/events', {
           schema: { // Criamos um esquema que vai validar TODOS os dados recebidos e retornados da rota
@@ -111,8 +113,9 @@
               title,
               details,
               maximumAttendees,
-            } = request.body // Valida os dados. Pega o corpo da requisição e verifica se segue suas devidas especificações 
-    ]
+            } = request.body // Valida os dados. Pega o corpo da requisição e verifica se segue suas devidas especificações
+          ...
+    ```
 
     Dessa forma, estamos sendo muito restritos quanto a tipagem da nossa aplicação, visto que estamos utilizando TypeScript
 

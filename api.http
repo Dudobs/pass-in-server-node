@@ -3,32 +3,32 @@ Content-Type: application/json
 
 {
   "title": "Evento muito pequeno",
-  "details": "Só cabe uma pessoas",
+  "details": "Só cabe uma pessoa",
   "maximumAttendees": 1
 }
 
 ###
 
-POST http://localhost:8888/events/9535f869-1f03-4150-b698-42f2285c6db8/attendee
+POST http://localhost:8888/events/3e2bd9ca-d0ed-43ba-8c1d-4308198427a7/attendee
 Content-Type: application/json
 
 {
   "name": "Eduardo Vieira",
-  "email": "dudobslol@gmail.com"f
+  "email": "dudobslol@gmail.com"
 }
 
 ###
 
-GET http://localhost:8888/events/9535f869-1f03-4150-b698-42f2285c6db8
+GET http://localhost:8888/events/3e2bd9ca-d0ed-43ba-8c1d-4308198427a7
 
 ###
 
-GET http://localhost:8888/attendees/2/badge
+GET http://localhost:8888/attendees/1/badge
 
 ###
 
-GET http://localhost:8888/attendees/2/check-in
+GET http://localhost:8888/attendees/1/check-in
 
 ###
 
-GET http://localhost:8888/events/9535f869-1f03-4150-b698-42f2285c6db8/attendees?query=edu
+GET http://localhost:8888/events/3e2bd9ca-d0ed-43ba-8c1d-4308198427a7/attendees?query=edu
